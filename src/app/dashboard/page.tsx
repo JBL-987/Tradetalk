@@ -3,7 +3,7 @@ import { useState, useEffect, FormEvent } from "react";
 import { useAuth } from "@/context/auth_context";
 import ProtectedRoute from "@/components/protected_route";
 import Link from "next/link";
-import { MessageCircle, Send, UserPlus, Search, User } from "lucide-react";
+import { MessageCircle, Send, UserPlus, Search, User, Paperclip } from "lucide-react";
 import { getContacts, addContact, getUserChats, createChat, sendMessage, getChatMessages, markMessagesAsRead, Contact, ChatMessage} from "@/services/user";
 
 export default function Dashboard() {
@@ -126,6 +126,12 @@ export default function Dashboard() {
       setError("Failed to send message");
     }
   };
+
+  const handleFileUpload = async (e: any) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    console.log("Files selected:", files);
+  }
 
   const filteredContacts = contacts.filter(contact => 
     contact.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -307,6 +313,8 @@ export default function Dashboard() {
                 
                 <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-800">
                   <div className="flex items-center">
+                    <input id="file-upload-input" data-testid="file-upload" aria-hidden="true" tabIndex={-1} className="absolute -z-10 h-0 w-0 overflow-hidden opacity-0" accept=".pdf,.doc,.docx,.rtf,.epub,.odt,.odp,.pptx,.txt,.py,.ipynb,.js,.jsx,.html,.css,.java,.cs,.php,.c,.cc,.cpp,.cxx,.cts,.h,.hh,.hpp,.rs,.R,.Rmd,.swift,.go,.rb,.kt,.kts,.ts,.tsx,.m,.mm,.mts,.scala,.rs,.dart,.lua,.pl,.pm,.t,.sh,.bash,.zsh,.csv,.log,.ini,.cfg,.config,.json,.proto,.yaml,.yml,.toml,.lua,.sql,.bat,.md,.coffee,.tex,.latex,.gd,.gdshader,.tres,.tscn,.jpg,.jpeg,.png,.gif,.webp" multiple aria-label="Upload files" type="file" onChange={(e) => handleFileUpload(e)} />
+                    <button type="button"onClick={() => document.getElementById('file-upload-input').click()} className="mr-2 bg-black border hover:bg-white hover:text-black hover:border-black rounded-full p-2 text-white focus:outline-none focus:ring-2 focus:ring-white" aria-label="Attach files"><Paperclip className="h-5 w-5" /></button>
                     <input
                       type="text"
                       value={newMessage}
