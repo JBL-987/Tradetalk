@@ -9,8 +9,8 @@ export default function Home() {
     <div className="relative h-screen w-screen overflow-hidden font-[family-name:var(--font-geist-sans)]">
       <div className="fixed inset-0 w-full h-full -z-10">
         <Spline
-          scene="https://prod.spline.design/7B1a04Mvaqer-pLN/scene.splinecode"
-          className="w-full h-full"
+          scene="https://prod.spline.design/OImLoQD838hwPx9Z/scene.splinecode" 
+          className="w-full h-full object-cover min-w-[100%] min-h-[100%]"
           onLoad={() => setIsLoaded(true)}
         />
         {!isLoaded && (

@@ -1,11 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { auth } from "@/config/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import Swal from "sweetalert2";
 import { useRouter } from "next/navigation";
+import Spline from '@splinetool/react-spline';
 
 export default function ForgotPassword() {
+    const [isLoaded, setIsLoaded] = useState(true);
     const [email, setEmail] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -63,8 +65,18 @@ export default function ForgotPassword() {
   };
 
     return (
-        <div className="relative h-screen w-screen overflow-hidden font-[family-name:var(--font-geist-sans)]">
-      <div className="fixed inset-0 w-full h-full -z-10  bg-black">
+      <div className="relative h-screen w-screen overflow-hidden font-[family-name:var(--font-geist-sans)]">
+      <div className="fixed inset-0 w-full h-full -z-10">
+        <Spline
+          scene="https://prod.spline.design/OImLoQD838hwPx9Z/scene.splinecode" 
+          className="w-full h-full object-cover min-w-[100%] min-h-[100%]"
+          onLoad={() => setIsLoaded(true)}
+        />
+        {!isLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black">
+            <p className="text-white">Loading 3D...</p>
+          </div>
+        )}
       </div>
       <div className="relative z-10 flex flex-col items-center justify-center h-screen p-6">
         <main className="w-full max-w-4xl mx-auto flex flex-col items-center text-center gap-6">

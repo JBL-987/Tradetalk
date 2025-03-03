@@ -5,8 +5,10 @@ import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, up
 import Swal from "sweetalert2";
 import { doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
+import Spline from '@splinetool/react-spline';
 
 export default function Signup() {
+  const [isLoaded, setIsLoaded] = useState(true);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -76,7 +78,17 @@ export default function Signup() {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-[family-name:var(--font-geist-sans)]">
-      <div className="fixed inset-0 w-full h-full -z-10 bg-black">
+       <div className="fixed inset-0 w-full h-full -z-10">
+        <Spline
+          scene="https://prod.spline.design/OImLoQD838hwPx9Z/scene.splinecode" 
+          className="w-full h-full object-cover min-w-[100%] min-h-[100%]"
+          onLoad={() => setIsLoaded(true)}
+        />
+        {!isLoaded && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black">
+            <p className="text-white">Loading 3D...</p>
+          </div>
+        )}
       </div>
       <div className="relative z-10 flex flex-col items-center justify-center h-screen p-6">
         <main className="w-full max-w-4xl mx-auto flex flex-col items-center text-center gap-6">

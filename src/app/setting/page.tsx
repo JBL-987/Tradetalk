@@ -97,14 +97,9 @@ export default function Settings() {
               <div className="p-3 mb-6 bg-red-600 bg-opacity-20 border border-red-500 text-red-500 rounded">
                 {error}
               </div>
-            )}
+            )}            
             
-            <div className="space-y-6">
-              <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
-                <div className="space-y-4">
-                </div>
-              </div>
-              
+            <div className="space-y-4">
               <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
                 <h2 className="text-lg font-semibold mb-4 flex items-center">
                   <Bell className="h-5 w-5 mr-2" />
