@@ -98,21 +98,17 @@ export const getUserChats = async (userId: string): Promise<Contact[]> => {
   if (!userId) {
     throw new Error("User ID is required");
   }
-
   try {
     const chatsQuery = query(
       collection(db, "chats"),
       where("participants", "array-contains", userId)
     );
-
     const chatsSnapshot = await getDocs(chatsQuery);
     const chats: Contact[] = [];
-    
     for (const chatDoc of chatsSnapshot.docs) {
       const chatData = chatDoc.data();
       const chatId = chatDoc.id;
       const otherParticipantId = chatData.participants.find((id: string) => id !== userId);
-      
       if (otherParticipantId) {
         try {
           const participantDetails = chatData.participantDetails?.[otherParticipantId] || {};
@@ -122,17 +118,14 @@ export const getUserChats = async (userId: string): Promise<Contact[]> => {
             where("sender", "==", otherParticipantId),
             where("read", "==", false)
           );
-          
           const unreadSnapshot = await getDocs(unreadQuery);
           const lastMessageQuery = query(
             collection(db, "messages"),
             where("chatId", "==", chatId),
             orderBy("timestamp", "desc")
           );
-          
           const lastMessageSnapshot = await getDocs(lastMessageQuery);
           const lastMessage = lastMessageSnapshot.docs[0]?.data();
-          
           chats.push({
             id: chatId,
             contactId: otherParticipantId,
@@ -143,11 +136,9 @@ export const getUserChats = async (userId: string): Promise<Contact[]> => {
           });
         } catch (error) {
           console.error(`Error processing chat ${chatId}:`, error);
-          // Continue to the next chat if this one fails
         }
       }
     }
-    
     return chats;
   } catch (error) {
     console.error("Error getting user chats:", error);
@@ -165,23 +156,16 @@ export const addContact = async (userId: string, username: string) => {
       collection(db, "users"),
       where("username", "==", username.trim())
     );
-    
-    const userSnapshot = await getDocs(userQuery);
-    
+    const userSnapshot = await getDocs(userQuery); 
     if (userSnapshot.empty) {
       throw new Error("User not found");
     }
-    
     const contactData = userSnapshot.docs[0].data();
     const contactId = userSnapshot.docs[0].id;
-    
     if (contactId === userId) {
       throw new Error("You cannot add yourself as a contact");
     }
-    
-    // Create a chat with the new structure
     const chatId = await createChat(userId, contactId);
-    
     return {
       id: contactId,
       chatId: chatId,
@@ -195,25 +179,20 @@ export const addContact = async (userId: string, username: string) => {
   }
 };
 
-// When creating a chat, store participant information in the chat document
 export const createChat = async (userId: string, contactId: string): Promise<string> => {
   if (!userId || !contactId) {
     throw new Error("Both user IDs are required");
   }
-
   try {
-    // Check if chat already exists
     const chatQuery = query(
       collection(db, "chats"),
       where("participants", "array-contains", userId)
     );
-    
     const chatsSnapshot = await getDocs(chatQuery);
-    
     for (const doc of chatsSnapshot.docs) {
       const participants = doc.data().participants;
       if (participants.includes(contactId)) {
-        return doc.id; // Chat already exists
+        return doc.id; 
       }
     }
   
@@ -224,11 +203,11 @@ export const createChat = async (userId: string, contactId: string): Promise<str
     const participantDetails = {
       [userId]: {
         displayName: userData.displayName || userData.username || "User",
-        photoURL: userData.photoURL || null  // Use null instead of undefined
+        photoURL: userData.photoURL || null  
       },
       [contactId]: {
         displayName: contactData.displayName || contactData.username || "Contact",
-        photoURL: contactData.photoURL || null  // Use null instead of undefined
+        photoURL: contactData.photoURL || null  
       }
     };
 
@@ -310,16 +289,11 @@ export const markMessagesAsRead = async (chatId: string, userId: string) => {
       where("sender", "!=", userId),
       where("read", "==", false)
     );
-    
     const unreadSnapshot = await getDocs(unreadQuery);
-    
-    // Update each message to mark as read
     const updatePromises = unreadSnapshot.docs.map(doc => 
       updateDoc(doc.ref, { read: true })
     );
-    
     await Promise.all(updatePromises);
-    
     return true;
   } catch (error) {
     console.error("Error marking messages as read:", error);
@@ -331,16 +305,12 @@ export const getContacts = async (userId: string): Promise<Contact[]> => {
   if (!userId) {
     throw new Error("User ID is required");
   }
-
   try {
-    const usersSnapshot = await getDocs(collection(db, "users"));
-    
+    const usersSnapshot = await getDocs(collection(db, "users")); 
     const contacts: Contact[] = [];
-    
     for (const userDoc of usersSnapshot.docs) {
       if (userDoc.id !== userId) {
         const userData = userDoc.data();
-        
         contacts.push({
           id: userDoc.id,
           contactId: userDoc.id,

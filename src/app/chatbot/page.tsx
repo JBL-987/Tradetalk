@@ -293,7 +293,7 @@ export default function App() {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type your message..."
-                className="flex-1 p-3 bg-black text-white border border-white hover:bg-white hover:text-black rounded-xl focus:ring-2 focus:ring-white transition-all duration-300"
+                className="flex-1 p-3 bg-white text-black border border-white hover:bg-black hover:text-white rounded-xl focus:ring-2 focus:ring-white transition-all duration-300"
                 disabled={isAiResponding}
               />
               <button
@@ -301,8 +301,8 @@ export default function App() {
                 className={`
                   p-3 rounded-xl transition-all duration-300
                   ${newMessage.trim() && !isAiResponding 
-                    ? 'bg-white hover:bg-gray-200 text-black' 
-                    : 'bg-black text-white border-2 border-white cursor-not-allowed'}
+                    ? 'bg-black hover:bg-white hover:text-black text-white border-2 border-white' 
+                    : 'bg-white text-black border-2 border-white cursor-not-allowed'}
                 `}
                 disabled={!newMessage.trim() || isAiResponding}
               >

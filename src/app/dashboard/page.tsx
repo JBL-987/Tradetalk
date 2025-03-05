@@ -10,6 +10,7 @@ import {
   deleteMessage
 } from "@/services/user";
 import Swal from "sweetalert2";
+import Image from "next/image";
 
 export default function Dashboard() {
   const { currentUser } = useAuth();
@@ -174,13 +175,18 @@ export default function Dashboard() {
   return (
     <ProtectedRoute>
       <div className="h-screen flex flex-col bg-black text-white">
-        <header className="bg-black text-white p-4 shadow-md border-b border-gray-800">
+        <header className="bg-black text-white p-8 shadow-md border-b border-gray-800">
           <div className="container mx-auto flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <MessageCircle className="h-6 w-6" />
-              <h1 className="text-2xl font-bold">Chatta</h1>
+            <div className="flex items-center absolute left-4 space-x-2 md:space-x-4">
+              <Image
+                src="/logo.png"
+                alt="Chatta Logo"
+                width={100}  
+                height={100}
+                className="h-16 w-auto"
+              />
             </div>
-            <div className="relative">
+            <div className="absolute right-4">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="flex items-center space-x-2"
@@ -356,10 +362,10 @@ export default function Dashboard() {
                     <Trash2 className="h-4 w-4" />
                   </button>
                 )}
+                </div>
               </div>
-            </div>
-          ))
-        ) : (
+              ))
+              ) : (
               <div className="h-full flex items-center justify-center text-gray-400">
                 No messages yet. Start the conversation!
                   </div>
