@@ -3,14 +3,13 @@ import { useState, useEffect, FormEvent } from "react";
 import { useAuth } from "@/context/auth_context";
 import ProtectedRoute from "@/components/protected_route";
 import Link from "next/link";
-import { ArrowLeft, Upload, User, Mail, AtSign, Save } from "lucide-react";
+import { ArrowLeft, User, Mail, AtSign, Save } from "lucide-react";
 import { updateUserProfile } from "@/services/user"; 
+import { toast } from "react-hot-toast";
 
 export default function Profile() {
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [userForm, setUserForm] = useState({
     displayName: "",
     email: "",
@@ -20,7 +19,6 @@ export default function Profile() {
 
   useEffect(() => {
     if (currentUser) {
-      // Populate form with current user data
       setUserForm({
         displayName: currentUser.displayName || "",
         email: currentUser.email || "",
@@ -37,16 +35,14 @@ export default function Profile() {
     
     try {
       setLoading(true);
-      setError(null);
       
       // Call your API to update user profile
       await updateUserProfile(currentUser.uid, userForm);
       
-      setSuccess("Profile updated successfully!");
-      setTimeout(() => setSuccess(null), 3000);
+      toast.success("Profile updated successfully!");
     } catch (err: any) {
       console.error("Error updating profile:", err);
-      setError(err.message || "Failed to update profile");
+      toast.error(err.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -63,9 +59,9 @@ export default function Profile() {
   return (
     <ProtectedRoute>
       <div className="h-screen flex flex-col bg-black text-white">
-        <header className="bg-black text-white p-4 shadow-md border-b border-gray-800">
+        <header className="bg-black text-white p-4 shadow-md border-b border-gray-800 sticky top-0 z-10">
           <div className="container mx-auto flex items-center">
-            <Link href="/dashboard" className="mr-4">
+            <Link href="/dashboard" className="mr-4 hover:text-blue-400 transition-colors">
               <ArrowLeft className="h-6 w-6" />
             </Link>
             <h1 className="text-2xl font-bold">Profile</h1>
@@ -74,19 +70,15 @@ export default function Profile() {
         
         <div className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-4 py-8 max-w-2xl">
-            {/* Profile Header */}
             <div className="flex flex-col items-center mb-8">
-              <div className="relative mb-4">
-                <div className="h-24 w-24 rounded-full bg-gray-800 flex items-center justify-center text-4xl">
+              <div className="mb-4 relative">
+                <div className="h-24 w-24 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-4xl shadow-lg">
                   {currentUser?.displayName ? (
                     currentUser.displayName.charAt(0).toUpperCase()
                   ) : (
                     <User className="h-12 w-12" />
                   )}
                 </div>
-                <button className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2 hover:bg-blue-700 transition-colors">
-                  <Upload className="h-4 w-4" />
-                </button>
               </div>
               <h2 className="text-xl font-semibold">
                 {currentUser?.displayName || "User"}
@@ -96,38 +88,25 @@ export default function Profile() {
               </p>
             </div>
             
-            {/* Profile Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {success && (
-                <div className="p-3 bg-green-600 bg-opacity-20 border border-green-500 text-green-500 rounded">
-                  {success}
-                </div>
-              )}
-              
-              {error && (
-                <div className="p-3 bg-red-600 bg-opacity-20 border border-red-500 text-red-500 rounded">
-                  {error}
-                </div>
-              )}
-              
-              <div>
+              <div className="group">
                 <label htmlFor="displayName" className="block text-sm font-medium text-gray-300 mb-1">
                   Display Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input
                     type="text"
                     id="displayName"
                     name="displayName"
                     value={userForm.displayName}
                     onChange={handleChange}
-                    className="w-full bg-gray-900 rounded-md pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-800"
+                    className="w-full bg-gray-900 rounded-md pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-800 transition-all"
                   />
                 </div>
               </div>
               
-              <div>
+              <div className="group">
                 <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
                   Email
                 </label>
@@ -146,19 +125,19 @@ export default function Profile() {
                 <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
               </div>
               
-              <div>
+              <div className="group">
                 <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-1">
                   Username
                 </label>
                 <div className="relative">
-                  <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input
                     type="text"
                     id="username"
                     name="username"
                     value={userForm.username}
                     onChange={handleChange}
-                    className="w-full bg-gray-900 rounded-md pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-800"
+                    className="w-full bg-gray-900 rounded-md pl-10 pr-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-800 transition-all"
                     placeholder="Choose a username"
                   />
                 </div>
@@ -175,7 +154,7 @@ export default function Profile() {
                   value={userForm.bio}
                   onChange={handleChange}
                   rows={4}
-                  className="w-full bg-gray-900 rounded-md px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-800"
+                  className="w-full bg-gray-900 rounded-md px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-800 transition-all"
                   placeholder="Tell us about yourself"
                 />
               </div>
@@ -184,10 +163,16 @@ export default function Profile() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-3 transition duration-300 flex items-center justify-center disabled:bg-blue-800 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-md px-4 py-3 transition duration-300 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed shadow-md"
                 >
                   {loading ? (
-                    "Saving..."
+                    <div className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </div>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />

@@ -1,17 +1,16 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth_context";
 import ProtectedRoute from "@/components/protected_route";
 import Link from "next/link";
-import { ArrowLeft, Bell, Moon, Shield, Key, LogOut, ToggleLeft, ToggleRight } from "lucide-react";
-import { updateUserSettings, resetPassword } from "@/services/user"; // Anda perlu membuat service ini
+import { ArrowLeft, Bell, Shield, Key, LogOut, ToggleLeft, ToggleRight } from "lucide-react";
+import { updateUserSettings, resetPassword } from "@/services/user"; 
+import { toast } from "react-hot-toast";
 
 export default function Settings() {
   const { currentUser, signOut } = useAuth();
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [resetLoading, setResetLoading] = useState<boolean>(false);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   
   const [settings, setSettings] = useState({
     darkMode: true,
@@ -21,44 +20,61 @@ export default function Settings() {
     twoFactorAuth: false
   });
 
+  // Fetch user settings on component mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      if (!currentUser?.uid) return;
+      
+      try {
+      } catch (err) {
+        console.error("Error fetching settings:", err);
+      }
+    };
+    
+    fetchSettings();
+  }, [currentUser]);
+
   const handleToggle = (setting: keyof typeof settings) => {
-    setSettings({
-      ...settings,
-      [setting]: !settings[setting]
-    });
+    setSettings(prev => ({
+      ...prev,
+      [setting]: !prev[setting]
+    }));
     handleSaveSettings(setting, !settings[setting]);
   };
 
   const handleSaveSettings = async (setting: string, value: boolean) => {
     if (!currentUser) return;
+    
+    setLoading(prev => ({ ...prev, [setting]: true }));
+    
     try {
-      setLoading(true);
-      setError(null);
       await updateUserSettings(currentUser.uid, { [setting]: value });
-      
+      toast.success(`${setting.replace(/([A-Z])/g, ' $1').trim()} ${value ? 'enabled' : 'disabled'}`);
     } catch (err: any) {
       console.error("Error updating settings:", err);
-      setError(err.message || "Failed to update settings");
-      setSettings({
-        ...settings,
+      toast.error(err.message || "Failed to update setting");
+      
+      // Revert the setting
+      setSettings(prev => ({
+        ...prev,
         [setting]: !value
-      });
+      }));
     } finally {
-      setLoading(false);
+      setLoading(prev => ({ ...prev, [setting]: false }));
     }
   };
 
   const handlePasswordReset = async () => {
     if (!currentUser?.email) return;
+    
+    setResetLoading(true);
+    
     try {
-      setResetLoading(true);
-      setError(null);
       await resetPassword(currentUser.email);
-      setSuccess("Password reset email sent. Check your inbox.");
-      setTimeout(() => setSuccess(null), 5000);
+      toast.success("Password reset email sent. Check your inbox.");
     } catch (err: any) {
       console.error("Error sending reset email:", err);
-      setError(err.message || "Failed to send password reset email");
+      toast.error(err.message || "Failed to send password reset email");
     } finally {
       setResetLoading(false);
     }
@@ -67,18 +83,19 @@ export default function Settings() {
   const handleSignOut = async () => {
     try {
       await signOut();
+      toast.success("Signed out successfully");
     } catch (err: any) {
       console.error("Error signing out:", err);
-      setError(err.message || "Failed to sign out");
+      toast.error(err.message || "Failed to sign out");
     }
   };
 
   return (
     <ProtectedRoute>
       <div className="h-screen flex flex-col bg-black text-white">
-        <header className="bg-black text-white p-4 shadow-md border-b border-gray-800">
+        <header className="bg-black text-white p-4 shadow-md border-b border-gray-800 sticky top-0 z-10">
           <div className="container mx-auto flex items-center">
-            <Link href="/dashboard" className="mr-4">
+            <Link href="/dashboard" className="mr-4 hover:text-blue-400 transition-colors">
               <ArrowLeft className="h-6 w-6" />
             </Link>
             <h1 className="text-2xl font-bold">Settings</h1>
@@ -86,36 +103,24 @@ export default function Settings() {
         </header>
         
         <div className="flex-1 overflow-y-auto">
-          <div className="container mx-auto px-4 py-8 max-w-2xl">
-            {success && (
-              <div className="p-3 mb-6 bg-green-600 bg-opacity-20 border border-green-500 text-green-500 rounded">
-                {success}
-              </div>
-            )}
-            
-            {error && (
-              <div className="p-3 mb-6 bg-red-600 bg-opacity-20 border border-red-500 text-red-500 rounded">
-                {error}
-              </div>
-            )}            
-            
-            <div className="space-y-4">
-              <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
+          <div className="container mx-auto px-4 py-8 max-w-2xl">          
+            <div className="space-y-6">
+              <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 shadow-lg">
                 <h2 className="text-lg font-semibold mb-4 flex items-center">
-                  <Bell className="h-5 w-5 mr-2" />
+                  <Bell className="h-5 w-5 mr-2 text-blue-500" />
                   Notifications
                 </h2>
                 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between group p-2 hover:bg-gray-800 rounded-md transition-colors">
                     <div>
                       <h3 className="font-medium">Push Notifications</h3>
                       <p className="text-sm text-gray-400">Get notified about new messages</p>
                     </div>
                     <button 
                       onClick={() => handleToggle('notifications')}
-                      disabled={loading}
-                      className="text-blue-500 focus:outline-none disabled:opacity-50"
+                      disabled={loading['notifications']}
+                      className="text-blue-500 focus:outline-none disabled:opacity-50 group-hover:scale-110 transition-transform"
                     >
                       {settings.notifications ? (
                         <ToggleRight className="h-6 w-6" />
@@ -125,15 +130,15 @@ export default function Settings() {
                     </button>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between group p-2 hover:bg-gray-800 rounded-md transition-colors">
                     <div>
                       <h3 className="font-medium">Sound Effects</h3>
                       <p className="text-sm text-gray-400">Play sounds for notifications</p>
                     </div>
                     <button 
                       onClick={() => handleToggle('soundEffects')}
-                      disabled={loading}
-                      className="text-blue-500 focus:outline-none disabled:opacity-50"
+                      disabled={loading['soundEffects']}
+                      className="text-blue-500 focus:outline-none disabled:opacity-50 group-hover:scale-110 transition-transform"
                     >
                       {settings.soundEffects ? (
                         <ToggleRight className="h-6 w-6" />
@@ -145,23 +150,22 @@ export default function Settings() {
                 </div>
               </div>
               
-              {/* Privacy Section */}
-              <div className="bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 shadow-lg">
                 <h2 className="text-lg font-semibold mb-4 flex items-center">
-                  <Shield className="h-5 w-5 mr-2" />
+                  <Shield className="h-5 w-5 mr-2 text-green-500" />
                   Privacy & Security
                 </h2>
                 
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between group p-2 hover:bg-gray-800 rounded-md transition-colors">
                     <div>
                       <h3 className="font-medium">Read Receipts</h3>
                       <p className="text-sm text-gray-400">Let others know when you've read their messages</p>
                     </div>
                     <button 
                       onClick={() => handleToggle('readReceipts')}
-                      disabled={loading}
-                      className="text-blue-500 focus:outline-none disabled:opacity-50"
+                      disabled={loading['readReceipts']}
+                      className="text-blue-500 focus:outline-none disabled:opacity-50 group-hover:scale-110 transition-transform"
                     >
                       {settings.readReceipts ? (
                         <ToggleRight className="h-6 w-6" />
@@ -171,15 +175,15 @@ export default function Settings() {
                     </button>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between group p-2 hover:bg-gray-800 rounded-md transition-colors">
                     <div>
                       <h3 className="font-medium">Two-Factor Authentication</h3>
                       <p className="text-sm text-gray-400">Add an extra layer of security</p>
                     </div>
                     <button 
                       onClick={() => handleToggle('twoFactorAuth')}
-                      disabled={loading}
-                      className="text-blue-500 focus:outline-none disabled:opacity-50"
+                      disabled={loading['twoFactorAuth']}
+                      className="text-blue-500 focus:outline-none disabled:opacity-50 group-hover:scale-110 transition-transform"
                     >
                       {settings.twoFactorAuth ? (
                         <ToggleRight className="h-6 w-6" />
@@ -189,22 +193,35 @@ export default function Settings() {
                     </button>
                   </div>
                   
-                  <div className="pt-2">
+                  <div className="pt-2 p-2">
                     <button
                       onClick={handlePasswordReset}
                       disabled={resetLoading}
-                      className="flex items-center text-blue-500 hover:text-blue-400 transition duration-300 disabled:opacity-50"
+                      className="flex items-center text-blue-500 hover:text-blue-400 transition duration-300 disabled:opacity-50 hover:underline"
                     >
-                      <Key className="h-4 w-4 mr-2" />
-                      {resetLoading ? "Sending..." : "Reset Password"}
+                      {resetLoading ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Key className="h-4 w-4 mr-2" />
+                          Reset Password
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
               </div>
+              
               <div className="pt-4">
                 <button
                   onClick={handleSignOut}
-                  className="w-full bg-red-700 hover:bg-red-800 text-white rounded-md px-4 py-3 transition duration-300 flex items-center justify-center"
+                  className="w-full bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 text-white rounded-md px-4 py-3 transition duration-300 flex items-center justify-center shadow-md"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out

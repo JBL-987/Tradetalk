@@ -3,8 +3,13 @@ import { useState, useEffect, FormEvent } from "react";
 import { useAuth } from "@/context/auth_context";
 import ProtectedRoute from "@/components/protected_route";
 import Link from "next/link";
-import { MessageCircle, Send, UserPlus, Search, User, Paperclip } from "lucide-react";
-import { getContacts, addContact, getUserChats, createChat, sendMessage, getChatMessages, markMessagesAsRead, Contact, ChatMessage} from "@/services/user";
+import { MessageCircle, Send, UserPlus, Search, User, Bot, Trash2 } from "lucide-react";
+import {
+  getContacts, addContact, getUserChats,
+  createChat, sendMessage, getChatMessages, markMessagesAsRead, Contact, ChatMessage,
+  deleteMessage
+} from "@/services/user";
+import Swal from "sweetalert2";
 
 export default function Dashboard() {
   const { currentUser } = useAuth();
@@ -127,11 +132,40 @@ export default function Dashboard() {
     }
   };
 
-  const handleFileUpload = async (e: any) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    console.log("Files selected:", files);
+  const handleDeleteMessage = async (messageId: string) => {
+  if (!currentUser) return;
+  try {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Do you want to delete this message?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      await deleteMessage(messageId, currentUser.uid);
+      setMessages(prevMessages => 
+        prevMessages.filter(msg => msg.id !== messageId)
+      );
+      Swal.fire(
+        'Deleted!',
+        'Your message has been deleted.',
+        'success'
+      );
+    }
+  } catch (err: any) {
+    console.error("Error deleting message:", err);
+    
+    Swal.fire(
+      'Error',
+      err.message || 'Failed to delete message. Please try again.',
+      'error'
+    );
   }
+};
 
   const filteredContacts = contacts.filter(contact => 
     contact.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -197,7 +231,7 @@ export default function Dashboard() {
           <div className="w-full md:w-1/3 lg:w-1/4 bg-black border-r border-gray-800 flex flex-col">
             <div className="p-4 border-b border-gray-800">
               <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search contacts..."
@@ -206,6 +240,19 @@ export default function Dashboard() {
                   className="rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white gap-2 px-4 py-2 font-medium shadow-lg w-full"
                   aria-label="Search contacts"
                 />
+                </div>
+              <div className="relative mb-4">
+                <button
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      window.location.href = '/chatbot';
+                    }
+                }}
+                className="flex items-center justify-center w-full bg-white hover:bg-black hover:text-white hover:border-white border border-gray-800 text-black rounded-full px-4 py-2 transition duration-300"
+                aria-label="Chat with AI">
+                <Bot className="h-4 w-4 mr-2" />
+                Chat with AI
+                </button>
               </div>
               <button
                 onClick={() => setIsAddingContact(true)}
@@ -279,42 +326,48 @@ export default function Dashboard() {
                 <div className="flex-1 overflow-y-auto p-4" id="messages-container">
                   {messages.length > 0 ? (
                     messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`mb-4 flex ${
-                          message.isMine ? "justify-end" : "justify-start"
-                        }`}
-                      >
-                        {!message.isMine && (
-                          <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center mr-2 flex-shrink-0">
-                            {activeContact.avatar || activeContact.name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                        <div
-                          className={`max-w-xs px-4 py-2 rounded-lg ${
-                            message.isMine
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-800 text-white"
-                          }`}
-                        >
-                          <p>{message.text}</p>
-                          <p className="text-xs text-gray-300 mt-1">
-                            {message.timestamp}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-gray-400">
-                      No messages yet. Start the conversation!
-                    </div>
-                  )}
+                      <div key={message.id}
+                        className={`mb-4 flex group ${message.isMine ? "justify-end" : "justify-start"
+                      }`} >
+                {!message.isMine && (
+                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center mr-2 flex-shrink-0">
+                  {activeContact.avatar || activeContact.name.charAt(0).toUpperCase()}
                 </div>
+                )}
+                <div className="flex items-center">
+                  <div
+                    className={`max-w-xs px-4 py-2 rounded-lg ${
+                    message.isMine
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-800 text-white"
+                  }`} >
+                  <p>{message.text}</p>
+                  <p className="text-xs text-gray-300 mt-1">
+                    {message.timestamp}
+                  </p>
+                </div>
+              
+                {message.isMine && (
+                  <button 
+                    onClick={() => handleDeleteMessage(message.id)}
+                    className="ml-2 text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    aria-label="Delete message"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        ) : (
+              <div className="h-full flex items-center justify-center text-gray-400">
+                No messages yet. Start the conversation!
+                  </div>
+               )}
+               </div>
                 
                 <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-800">
                   <div className="flex items-center">
-                    <input id="file-upload-input" data-testid="file-upload" aria-hidden="true" tabIndex={-1} className="absolute -z-10 h-0 w-0 overflow-hidden opacity-0" accept=".pdf,.doc,.docx,.rtf,.epub,.odt,.odp,.pptx,.txt,.py,.ipynb,.js,.jsx,.html,.css,.java,.cs,.php,.c,.cc,.cpp,.cxx,.cts,.h,.hh,.hpp,.rs,.R,.Rmd,.swift,.go,.rb,.kt,.kts,.ts,.tsx,.m,.mm,.mts,.scala,.rs,.dart,.lua,.pl,.pm,.t,.sh,.bash,.zsh,.csv,.log,.ini,.cfg,.config,.json,.proto,.yaml,.yml,.toml,.lua,.sql,.bat,.md,.coffee,.tex,.latex,.gd,.gdshader,.tres,.tscn,.jpg,.jpeg,.png,.gif,.webp" multiple aria-label="Upload files" type="file" onChange={(e) => handleFileUpload(e)} />
-                    <button type="button"onClick={() => document.getElementById('file-upload-input').click()} className="mr-2 bg-black border hover:bg-white hover:text-black hover:border-black rounded-full p-2 text-white focus:outline-none focus:ring-2 focus:ring-white" aria-label="Attach files"><Paperclip className="h-5 w-5" /></button>
                     <input
                       type="text"
                       value={newMessage}

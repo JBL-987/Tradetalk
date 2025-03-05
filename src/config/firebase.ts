@@ -41,7 +41,7 @@ const forgotPassword = async (email: string) => {
   } catch (error) {
     console.error("Error sending password reset email:", error);
   }
-};
+}; 
 
 export { forgotPassword, createChatroom };
 export { db, auth };

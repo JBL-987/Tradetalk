@@ -1,5 +1,5 @@
-import { doc, updateDoc, getDoc, getDocs, collection, query, where, addDoc, setDoc, serverTimestamp, onSnapshot, orderBy, deleteDoc, Timestamp, DocumentData } from "firebase/firestore";
-import { getAuth, updateProfile, sendPasswordResetEmail } from "firebase/auth";
+import { doc, updateDoc, getDoc, getDocs, collection, query, where, addDoc, serverTimestamp, onSnapshot, orderBy, deleteDoc } from "firebase/firestore";
+import { updateProfile, sendPasswordResetEmail } from "firebase/auth";
 import { db, auth } from "@/config/firebase";
 
 export interface UserProfileData {
@@ -29,7 +29,6 @@ export interface Contact {
 
 export interface ChatMessage {
   id: string;
-  chatId: string;
   sender: string;
   text: string;
   timestamp: any;
@@ -37,16 +36,12 @@ export interface ChatMessage {
   isMine?: boolean;
 }
 
-/**
- * Update user profile in Firestore and Auth profile
- */
 export const updateUserProfile = async (userId: string, data: UserProfileData) => {
   if (!userId) {
     throw new Error("User ID is required");
   }
 
   try {
-    // Update user document in Firestore
     const userRef = doc(db, "users", userId);
     await updateDoc(userRef, {
       displayName: data.displayName,
@@ -54,8 +49,6 @@ export const updateUserProfile = async (userId: string, data: UserProfileData) =
       bio: data.bio,
       updatedAt: new Date()
     });
-
-    // Update displayName in Firebase Auth
     if (auth.currentUser && data.displayName) {
       await updateProfile(auth.currentUser, {
         displayName: data.displayName
@@ -118,16 +111,11 @@ export const getUserChats = async (userId: string): Promise<Contact[]> => {
     for (const chatDoc of chatsSnapshot.docs) {
       const chatData = chatDoc.data();
       const chatId = chatDoc.id;
-      
-      // Find the other participant's ID
       const otherParticipantId = chatData.participants.find((id: string) => id !== userId);
       
       if (otherParticipantId) {
         try {
-          // Use the participant details stored in the chat if available
           const participantDetails = chatData.participantDetails?.[otherParticipantId] || {};
-          
-          // For unread messages
           const unreadQuery = query(
             collection(db, "messages"),
             where("chatId", "==", chatId),
@@ -136,8 +124,6 @@ export const getUserChats = async (userId: string): Promise<Contact[]> => {
           );
           
           const unreadSnapshot = await getDocs(unreadQuery);
-          
-          // For last message
           const lastMessageQuery = query(
             collection(db, "messages"),
             where("chatId", "==", chatId),
@@ -230,15 +216,11 @@ export const createChat = async (userId: string, contactId: string): Promise<str
         return doc.id; // Chat already exists
       }
     }
-    
-    // Get user data
+  
     const userDoc = await getDoc(doc(db, "users", userId));
     const contactDoc = await getDoc(doc(db, "users", contactId));
-    
     const userData = userDoc.data() || {};
     const contactData = contactDoc.data() || {};
-    
-    // Create participant details with fallbacks for null/undefined values
     const participantDetails = {
       [userId]: {
         displayName: userData.displayName || userData.username || "User",
@@ -249,8 +231,7 @@ export const createChat = async (userId: string, contactId: string): Promise<str
         photoURL: contactData.photoURL || null  // Use null instead of undefined
       }
     };
-    
-    // Create new chat with participant details included
+
     const newChatRef = await addDoc(collection(db, "chats"), {
       participants: [userId, contactId],
       participantDetails: participantDetails,
@@ -278,7 +259,6 @@ export const sendMessage = async (chatId: string, senderId: string, text: string
       read: false
     });
     
-    // Update the chat's last activity
     await updateDoc(doc(db, "chats", chatId), {
       lastMessage: text,
       lastMessageSender: senderId,
@@ -293,9 +273,6 @@ export const sendMessage = async (chatId: string, senderId: string, text: string
   }
 };
 
-/**
- * Get messages for a chat with real-time updates
- */
 export const getChatMessages = (chatId: string, callback: (messages: ChatMessage[]) => void) => {
   if (!chatId) {
     throw new Error("Chat ID is required");
@@ -322,16 +299,11 @@ export const getChatMessages = (chatId: string, callback: (messages: ChatMessage
   }
 };
 
-/**
- * Mark all messages in a chat as read for a specific user
- */
 export const markMessagesAsRead = async (chatId: string, userId: string) => {
   if (!chatId || !userId) {
     throw new Error("Chat ID and user ID are required");
   }
-
   try {
-    // Find all unread messages sent by other users
     const unreadQuery = query(
       collection(db, "messages"),
       where("chatId", "==", chatId),
@@ -355,9 +327,6 @@ export const markMessagesAsRead = async (chatId: string, userId: string) => {
   }
 };
 
-/**
- * Get contacts (all available users except current user)
- */
 export const getContacts = async (userId: string): Promise<Contact[]> => {
   if (!userId) {
     throw new Error("User ID is required");
@@ -385,6 +354,32 @@ export const getContacts = async (userId: string): Promise<Contact[]> => {
     return contacts;
   } catch (error) {
     console.error("Error getting contacts:", error);
+    throw error;
+  }
+};
+
+export const deleteMessage = async (messageId: string, currentUserId: string) => {
+  if (!messageId) {
+    throw new Error("Message ID is required");
+  }
+  try {
+    const messageRef = doc(db, "messages", messageId);
+    const messageDoc = await getDoc(messageRef);
+    if (!messageDoc.exists()) {
+      throw new Error("Message not found");
+    }
+    const messageData = messageDoc.data();
+    if (messageData?.sender !== currentUserId) {
+      throw new Error("You can only delete your own messages");
+    }
+    await deleteDoc(messageRef);
+    return true;
+  } catch (error: any) {
+    console.error("Error deleting message:", error);
+    if (error.code === 'permission-denied') {
+      throw new Error("You do not have permission to delete this message");
+    }
+
     throw error;
   }
 };
