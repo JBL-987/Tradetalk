@@ -1,13 +1,14 @@
 "use client";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { auth, db } from "@/config/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { doc, getDoc, DocumentData } from "firebase/firestore";
 
 interface AuthContextType {
   currentUser: User | null;
   userData: DocumentData | null;
   loading: boolean;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,7 +25,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
-      
+
       if (user) {
         try {
           const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -37,17 +38,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } else {
         setUserData(null);
       }
-      
+
       setLoading(false);
     });
 
     return unsubscribe;
   }, []);
 
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setCurrentUser(null);
+      setUserData(null);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   const value: AuthContextType = {
     currentUser,
     userData,
-    loading
+    loading,
+    logout,
   };
 
   return (

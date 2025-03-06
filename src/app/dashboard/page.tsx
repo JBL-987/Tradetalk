@@ -3,7 +3,7 @@ import { useState, useEffect, FormEvent } from "react";
 import { useAuth } from "@/context/auth_context";
 import ProtectedRoute from "@/components/protected_route";
 import Link from "next/link";
-import { Send, UserPlus, Search, User, Bot, Trash2, ChartCandlestick } from "lucide-react";
+import { Send, UserPlus, Search, User, Bot, Trash2, ChartCandlestick, Users } from "lucide-react";
 import {
   getContacts, addContact, getUserChats,
   createChat, sendMessage, getChatMessages, markMessagesAsRead, Contact, ChatMessage,
@@ -22,6 +22,7 @@ export default function Dashboard() {
   const [newMessage, setNewMessage] = useState<string>("");
   const [newContactForm, setNewContactForm] = useState({username: "" });
   const [isAddingContact, setIsAddingContact] = useState<boolean>(false);
+  const [isAddinggroup, setIsAddinggroup] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -270,6 +271,7 @@ export default function Dashboard() {
                   View Prices
                 </button>
               </div>
+              <div className="flex space-x-4 mb-4">
               <button
                 onClick={() => setIsAddingContact(true)}
                 className="flex items-center justify-center w-full bg-white hover:bg-black hover:text-white hover:border-white border border-gray-800 text-black rounded-full px-4 py-2 transition duration-300"
@@ -278,6 +280,7 @@ export default function Dashboard() {
                 <UserPlus className="h-4 w-4 mr-2" />
                 Add New Contact
               </button>
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto">
               {loading ? (
@@ -354,11 +357,11 @@ export default function Dashboard() {
                   <div
                     className={`max-w-xs px-4 py-2 rounded-lg ${
                     message.isMine
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-800 text-white"
+                      ? "bg-white text-black"
+                      : "bg-black text-white border border-gray-800"
                   }`} >
                   <p>{message.text}</p>
-                  <p className="text-xs text-gray-300 mt-1">
+                  <p className="text-xs text-gray mt-1">
                     {message.timestamp}
                   </p>
                 </div>

@@ -32,7 +32,6 @@ export interface ChatMessage {
   sender: string;
   text: string;
   timestamp: any;
-  read: boolean;
   isMine?: boolean;
 }
 

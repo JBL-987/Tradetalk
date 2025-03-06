@@ -89,158 +89,114 @@ export default function App() {
   }, []);
 
   const saveCurrentConversation = useCallback(() => {
-    if (currentConversation.messages.length === 0) return;
+  if (currentConversation.messages.length === 0) return;
 
-    setConversations(prev => {
-      const existingIndex = prev.findIndex(c => c.id === currentConversation.id);
-      const updatedConversation = {
-        ...currentConversation,
-        updatedAt: new Date()
-      };
-      
-      if (existingIndex >= 0) {
-        return prev.map((conv, i) => i === existingIndex ? updatedConversation : conv);
-      } else {
-        return [updatedConversation, ...prev];
-      }
-    });
-    
-    toast.success("Conversation saved!");
-  }, [currentConversation]);
-
-  const handleSendMessage = async (e: FormEvent) => {
-    e.preventDefault();
-    
-    if (!newMessage.trim()) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Empty Message',
-        text: 'Please enter a message before sending.',
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 2000
-      });
-      return;
-    }
-    
-    const userMessage: Message = {
-      id: uuidv4(),
-      content: newMessage.trim(),
-      role: "user",
-      timestamp: new Date()
+  setConversations(prev => {
+    const existingIndex = prev.findIndex(c => c.id === currentConversation.id);
+    const updatedConversation = {
+      ...currentConversation,
+      updatedAt: new Date()
     };
-    
-    const updatedMessages = [...currentConversation.messages, userMessage];
-    
-    if (currentConversation.messages.length === 0) {
-      const newTitle = userMessage.content.length > 30 
-        ? `${userMessage.content.substring(0, 30)}...` 
-        : userMessage.content;
-        
-      updateCurrentConversation({
-        title: newTitle,
-        messages: updatedMessages
-      });
+
+    if (existingIndex >= 0) {
+      return prev.map((conv, i) => (i === existingIndex ? updatedConversation : conv));
     } else {
-      updateCurrentConversation({
-        messages: updatedMessages
-      });
+      return [...prev, updatedConversation]; // Tambahkan percakapan jika belum ada
     }
-    
-    setNewMessage("");
-    setIsAiResponding(true);
-    setError(null);
-    
-    try {
-      const apiMessages = updatedMessages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
-      
-      const aiResponse = await getChatCompletion(apiMessages);
-      
-      if (!aiResponse || aiResponse.trim() === '') {
-        throw new Error('Received an empty response from AI');
-      }
-      
-      const aiMessage: Message = {
-        id: uuidv4(),
-        content: aiResponse,
-        role: "assistant",
-        timestamp: new Date()
-      };
-      
-      const finalMessages = [...updatedMessages, aiMessage];
-      
-      updateCurrentConversation({
-        messages: finalMessages
-      });
-      
-      const isFirstResponse = updatedMessages.filter(msg => msg.role === "assistant").length === 0;
-      
-      if (isFirstResponse) {
-        saveCurrentConversation();
-        toast.success("Conversation started and saved!");
-      } else {
-        setConversations(prev => {
-          const existingIndex = prev.findIndex(c => c.id === currentConversation.id);
-          const updatedConversation = {
-            ...currentConversation,
-            messages: finalMessages,
-            updatedAt: new Date()
-          };
-          
-          if (existingIndex >= 0) {
-            return prev.map((conv, i) => i === existingIndex ? updatedConversation : conv);
-          } else {
-            return [updatedConversation, ...prev];
-          }
-        });
-      }
-    } catch (err: any) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Chat Error',
-        text: err.message || 'An unexpected error occurred during the chat.',
-        confirmButtonText: 'Try Again',
-      });
-      
-      console.error("Error in chat:", err);
-      
-      updateCurrentConversation({
-        messages: currentConversation.messages
-      });
-    } finally {
-      setIsAiResponding(false);
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
-    }
+  });
+
+  toast.success("Conversation saved!");
+  }, [currentConversation]);
+  
+  const handleSendMessage = async (e: FormEvent) => {
+  e.preventDefault();
+  
+  if (!newMessage.trim()) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Empty Message',
+      text: 'Please enter a message before sending.',
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 2000
+    });
+    return;
+  }
+
+  const userMessage: Message = {
+    id: uuidv4(),
+    content: newMessage.trim(),
+    role: "user",
+    timestamp: new Date()
   };
 
-  const handleNewChat = useCallback(() => {
-    if (currentConversation.messages.length > 0) {
-      saveCurrentConversation();
+  const updatedMessages = [...currentConversation.messages, userMessage];
+
+  updateCurrentConversation({
+    messages: updatedMessages
+  });
+
+  setNewMessage("");
+  setIsAiResponding(true);
+  setError(null);
+
+  try {
+    const apiMessages = updatedMessages.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
+
+    const aiResponse = await getChatCompletion(apiMessages);
+
+    if (!aiResponse || aiResponse.trim() === '') {
+      throw new Error('Received an empty response from AI');
     }
-    
-    setCurrentConversation({
+
+    const aiMessage: Message = {
       id: uuidv4(),
-      title: "New Chat",
-      messages: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
+      content: aiResponse,
+      role: "assistant",
+      timestamp: new Date()
+    };
+
+    const finalMessages = [...updatedMessages, aiMessage];
+
+    updateCurrentConversation({
+      messages: finalMessages
     });
-  }, [currentConversation.messages.length, saveCurrentConversation]);
-  const selectConversation = useCallback((conversation: Conversation) => {
-    if (currentConversation.messages.length > 0) {
-      saveCurrentConversation();
+
+    saveCurrentConversation(); // Simpan percakapan saat ada respons AI
+  } catch (err: any) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Chat Error',
+      text: err.message || 'An unexpected error occurred during the chat.',
+      confirmButtonText: 'Try Again',
+    });
+
+    console.error("Error in chat:", err);
+  } finally {
+    setIsAiResponding(false);
+    if (inputRef.current) {
+      inputRef.current.focus();
     }
-    setCurrentConversation(conversation);
-    if (window.innerWidth < 768) {
-      setIsSidebarOpen(false);
-    }
-  }, [currentConversation.messages.length, saveCurrentConversation]);
+  }
+  };
+  
+  const handleNewChat = useCallback(() => {
+  if (currentConversation.messages.length > 0) {
+    saveCurrentConversation();
+  }
+
+  setCurrentConversation({
+    id: uuidv4(),
+    title: "New Chat",
+    messages: [],
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
+}, [currentConversation.messages.length, saveCurrentConversation]);
 
   const deleteConversation = useCallback((id: string) => {
     Swal.fire({
@@ -320,7 +276,7 @@ export default function App() {
           <ConversationList
             conversations={conversations}
             currentConversation={currentConversation}
-            onSelect={selectConversation}
+            onSelect={setCurrentConversation}
             onDelete={deleteConversation}
             onNew={handleNewChat}
             onSave={saveCurrentConversation}
@@ -363,7 +319,7 @@ export default function App() {
             
             {isAiResponding && (
               <div className="flex justify-start">
-                <div className="bg-gray-800 text-white rounded-lg p-3 animate-pulse flex items-center space-x-2">
+                <div className="bg-black border border-gray-800 text-white rounded-lg p-3 animate-pulse flex items-center space-x-2">
                   <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
                   <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-100"></div>
                   <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-200"></div>

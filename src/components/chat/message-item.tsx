@@ -20,7 +20,7 @@ export function MessageItem({ message, formatTime }: MessageItemProps) {
         relative max-w-[80%] rounded-xl p-4 group
         ${message.role === "user" 
           ? "bg-white text-black" 
-          : "bg-gray-800 text-white"}
+          : "bg-black border border-gray-800 text-white"}
         shadow-lg
       `}>
         <div className="absolute -left-10 top-2">
