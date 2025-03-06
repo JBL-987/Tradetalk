@@ -24,7 +24,8 @@
     "react-hot-toast": "^2.5.2",
     "sweetalert2": "^11.17.2",
     "three": "^0.173.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "ws": "^8.18.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

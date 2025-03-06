@@ -3,7 +3,7 @@ import { useState, useEffect, FormEvent } from "react";
 import { useAuth } from "@/context/auth_context";
 import ProtectedRoute from "@/components/protected_route";
 import Link from "next/link";
-import { MessageCircle, Send, UserPlus, Search, User, Bot, Trash2 } from "lucide-react";
+import { Send, UserPlus, Search, User, Bot, Trash2, ChartCandlestick } from "lucide-react";
 import {
   getContacts, addContact, getUserChats,
   createChat, sendMessage, getChatMessages, markMessagesAsRead, Contact, ChatMessage,
@@ -13,7 +13,7 @@ import Swal from "sweetalert2";
 import Image from "next/image";
 
 export default function Dashboard() {
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
@@ -175,7 +175,7 @@ export default function Dashboard() {
       <div className="h-screen flex flex-col bg-black text-white">
         <header className="bg-black text-white p-8 shadow-md border-b border-gray-800">
           <div className="container mx-auto flex justify-between items-center">
-            <div className="flex items-center absolute left-4 space-x-2 md:space-x-4">
+            <div className="flex items-center absolute left-4 space-x-4 md:space-x-8">
               <Image
                 src="/logo.png"
                 alt="Chatta Logo"
@@ -184,7 +184,7 @@ export default function Dashboard() {
                 className="h-16 w-auto"
               />
             </div>
-            <div className="absolute right-4">
+            <div className="absolute right-6">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="flex items-center space-x-2"
@@ -205,22 +205,21 @@ export default function Dashboard() {
                   <div className="py-1">
                     <Link
                       href="/profile"
-                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-900"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-900"
                     >
                       Profile
                     </Link>
                     <Link
                       href="/setting"
-                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-900"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-900"
                     >
                       Settings
                     </Link>
                     <button
                       className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-900"
                       onClick={() => {
-                        if (typeof window !== 'undefined') {
-                          window.location.href = '/login';
-                        }
+                        logout();
+                        setIsMenuOpen(false);
                       }}
                     >
                       Sign Out
@@ -245,17 +244,30 @@ export default function Dashboard() {
                   aria-label="Search contacts"
                 />
                 </div>
-              <div className="relative mb-4">
+              <div className="flex space-x-4 mb-4">
                 <button
                   onClick={() => {
                     if (typeof window !== 'undefined') {
-                      window.location.href = '/chatbot';
+                      window.location.href = '/chatbot'; 
                     }
-                }}
+                  }}
                 className="flex items-center justify-center w-full bg-white hover:bg-black hover:text-white hover:border-white border border-gray-800 text-black rounded-full px-4 py-2 transition duration-300"
-                aria-label="Chat with AI">
+                aria-label="Chat with AI"
+                >
                 <Bot className="h-4 w-4 mr-2" />
                 Chat with AI
+                </button>
+                <button
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      window.location.href = '/chart';
+                    }
+                  }}
+                  className="flex items-center justify-center w-full bg-white hover:bg-black hover:text-white hover:border-white border border-gray-800 text-black rounded-full px-4 py-2 transition duration-300"
+                  aria-label="View Prices"
+                >
+                  <ChartCandlestick className="h-4 w-4 mr-2" />
+                  View Prices
                 </button>
               </div>
               <button

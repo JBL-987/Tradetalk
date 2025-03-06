@@ -52,8 +52,6 @@ export default function Settings() {
     } catch (err: any) {
       console.error("Error updating settings:", err);
       toast.error(err.message || "Failed to update setting");
-      
-      // Revert the setting
       setSettings(prev => ({
         ...prev,
         [setting]: !value

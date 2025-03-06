@@ -204,7 +204,6 @@ export default function App() {
         title: 'Chat Error',
         text: err.message || 'An unexpected error occurred during the chat.',
         confirmButtonText: 'Try Again',
-        footer: '<a href="/support">Need help?</a>'
       });
       
       console.error("Error in chat:", err);
