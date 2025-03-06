@@ -139,8 +139,8 @@ export default function Signup() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  minLength="6" 
                   required
-                  minLength="6"
                   className="rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white gap-2 px-6 py-3 font-medium shadow-lg w-full" 
                 />
               </div>

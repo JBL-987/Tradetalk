@@ -35,8 +35,6 @@ export default function Profile() {
     
     try {
       setLoading(true);
-      
-      // Call your API to update user profile
       await updateUserProfile(currentUser.uid, userForm);
       
       toast.success("Profile updated successfully!");

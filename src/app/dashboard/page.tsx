@@ -121,9 +121,7 @@ export default function Dashboard() {
 
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault();
-    
     if (!newMessage.trim() || !chatId || !currentUser) return;
-    
     try {
       await sendMessage(chatId, currentUser.uid, newMessage);
       setNewMessage("");

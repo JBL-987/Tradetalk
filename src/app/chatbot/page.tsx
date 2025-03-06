@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, FormEvent, useRef } from "react";
-import { Bot, X, Menu } from "lucide-react";
+import { useState, useEffect, FormEvent, useRef, useCallback } from "react";
+import { Bot, X, Menu, Send, House } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
 import { toast, Toaster } from "react-hot-toast";
 import { ConversationList } from "@/components/chat/conversation-list";
@@ -8,9 +8,13 @@ import { MessageItem } from "@/components/chat/message-item";
 import { getChatCompletion } from "@/lib/openrouter";
 import type { Message, Conversation } from "@/types";
 import Swal from "sweetalert2";
+import Link from "next/link";
+
+const LOCAL_STORAGE_KEY = "conversations";
 
 export default function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [newMessage, setNewMessage] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [currentConversation, setCurrentConversation] = useState<Conversation>({
@@ -22,143 +26,201 @@ export default function App() {
   });
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isAiResponding, setIsAiResponding] = useState<boolean>(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(window.innerWidth >= 768);
 
   useEffect(() => {
-  const savedConversations = localStorage.getItem("conversations");
-  if (savedConversations) {
     try {
-      const parsed = JSON.parse(savedConversations).map((conv: any) => ({
-        ...conv,
-        messages: conv.messages.map((msg: any) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        })),
-        createdAt: new Date(conv.createdAt),
-        updatedAt: new Date(conv.updatedAt)
-      }));
-      setConversations(parsed);
-      setCurrentConversation(parsed.length > 0 ? parsed[0] : {
-        id: uuidv4(),
-        title: "New Chat",
-        messages: [],
-        createdAt: new Date(),
-        updatedAt: new Date()
-      });
+      const savedConversations = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (savedConversations) {
+        const parsed = JSON.parse(savedConversations).map((conv: any) => ({
+          ...conv,
+          messages: conv.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          })),
+          createdAt: new Date(conv.createdAt),
+          updatedAt: new Date(conv.updatedAt)
+        }));
+        
+        setConversations(parsed);
+        
+        if (parsed.length > 0) {
+          setCurrentConversation(parsed[0]);
+        }
+      }
     } catch (e) {
       console.error("Failed to parse saved conversations:", e);
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
     }
-  }
-}, []);
-
+  }, []);
 
   useEffect(() => {
-  localStorage.setItem("conversations", JSON.stringify(conversations));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(conversations));
   }, [conversations]);
- 
   useEffect(() => {
     scrollToBottom();
   }, [currentConversation.messages]);
+  useEffect(() => {
+    if (inputRef.current && !isAiResponding) {
+      inputRef.current.focus();
+    }
+  }, [currentConversation.id, isAiResponding]);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSidebarOpen(window.innerWidth >= 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 200)
-  };
+    }, 200);
+  }, []);
 
-  const updateCurrentConversation = (updates: Partial<Conversation>) => {
+  const updateCurrentConversation = useCallback((updates: Partial<Conversation>) => {
     setCurrentConversation(prev => ({
       ...prev,
       ...updates,
       updatedAt: new Date()
     }));
-  };
+  }, []);
 
-  const saveCurrentConversation = () => {
+  const saveCurrentConversation = useCallback(() => {
     if (currentConversation.messages.length === 0) return;
 
     setConversations(prev => {
       const existingIndex = prev.findIndex(c => c.id === currentConversation.id);
       const updatedConversation = {
-      ...currentConversation,
-      updatedAt: new Date()
-    };
-    if (existingIndex >= 0) {
-      return prev.map((conv, i) => i === existingIndex ? updatedConversation : conv);
-    } else {
-      return [updatedConversation, ...prev];
-    }
-  });
-  toast.success("Conversation saved!");
-  };
-
- const handleSendMessage = async (e: FormEvent) => {
-  e.preventDefault();
-  if (!newMessage.trim()) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Empty Message',
-      text: 'Please enter a message before sending.',
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 2000
+        ...currentConversation,
+        updatedAt: new Date()
+      };
+      
+      if (existingIndex >= 0) {
+        return prev.map((conv, i) => i === existingIndex ? updatedConversation : conv);
+      } else {
+        return [updatedConversation, ...prev];
+      }
     });
-    return;
-  }
-  const userMessage: Message = {
-    id: uuidv4(),
-    content: newMessage.trim(),
-    role: "user",
-    timestamp: new Date()
-  };
-  const updatedMessages = [...currentConversation.messages, userMessage];
-  updateCurrentConversation({
-    messages: updatedMessages
-  });
-  setNewMessage("");
-  setIsAiResponding(true);
-  setError(null);
-  try {
-    const apiMessages = updatedMessages.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    }));
-    const aiResponse = await getChatCompletion(apiMessages);
-    if (!aiResponse || aiResponse.trim() === '') {
-      throw new Error('Received an empty response from AI');
+    
+    toast.success("Conversation saved!");
+  }, [currentConversation]);
+
+  const handleSendMessage = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (!newMessage.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Empty Message',
+        text: 'Please enter a message before sending.',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000
+      });
+      return;
     }
-    const aiMessage: Message = {
+    
+    const userMessage: Message = {
       id: uuidv4(),
-      content: aiResponse,
-      role: "assistant",
+      content: newMessage.trim(),
+      role: "user",
       timestamp: new Date()
     };
-    const finalMessages = [...updatedMessages, aiMessage];
-    updateCurrentConversation({
-      messages: finalMessages
-    });
-    saveCurrentConversation();
+    
+    const updatedMessages = [...currentConversation.messages, userMessage];
+    
+    if (currentConversation.messages.length === 0) {
+      const newTitle = userMessage.content.length > 30 
+        ? `${userMessage.content.substring(0, 30)}...` 
+        : userMessage.content;
+        
+      updateCurrentConversation({
+        title: newTitle,
+        messages: updatedMessages
+      });
+    } else {
+      updateCurrentConversation({
+        messages: updatedMessages
+      });
+    }
+    
+    setNewMessage("");
+    setIsAiResponding(true);
+    setError(null);
+    
+    try {
+      const apiMessages = updatedMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+      
+      const aiResponse = await getChatCompletion(apiMessages);
+      
+      if (!aiResponse || aiResponse.trim() === '') {
+        throw new Error('Received an empty response from AI');
+      }
+      
+      const aiMessage: Message = {
+        id: uuidv4(),
+        content: aiResponse,
+        role: "assistant",
+        timestamp: new Date()
+      };
+      
+      const finalMessages = [...updatedMessages, aiMessage];
+      
+      updateCurrentConversation({
+        messages: finalMessages
+      });
+      
+      const isFirstResponse = updatedMessages.filter(msg => msg.role === "assistant").length === 0;
+      
+      if (isFirstResponse) {
+        saveCurrentConversation();
+        toast.success("Conversation started and saved!");
+      } else {
+        setConversations(prev => {
+          const existingIndex = prev.findIndex(c => c.id === currentConversation.id);
+          const updatedConversation = {
+            ...currentConversation,
+            messages: finalMessages,
+            updatedAt: new Date()
+          };
+          
+          if (existingIndex >= 0) {
+            return prev.map((conv, i) => i === existingIndex ? updatedConversation : conv);
+          } else {
+            return [updatedConversation, ...prev];
+          }
+        });
+      }
+    } catch (err: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Chat Error',
+        text: err.message || 'An unexpected error occurred during the chat.',
+        confirmButtonText: 'Try Again',
+        footer: '<a href="/support">Need help?</a>'
+      });
+      
+      console.error("Error in chat:", err);
+      
+      updateCurrentConversation({
+        messages: currentConversation.messages
+      });
+    } finally {
+      setIsAiResponding(false);
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }
+  };
 
-  } catch (err: any) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Chat Error',
-      text: err.message || 'An unexpected error occurred during the chat.',
-      confirmButtonText: 'Try Again',
-      footer: '<a href="/support">Need help?</a>'
-    });
-    console.error("Error in chat:", err);
-    updateCurrentConversation({
-      messages: currentConversation.messages
-    });
-
-  } finally {
-    setIsAiResponding(false);
-  }
-};
-
-  const handleNewChat = () => {
+  const handleNewChat = useCallback(() => {
     if (currentConversation.messages.length > 0) {
       saveCurrentConversation();
     }
@@ -170,9 +232,8 @@ export default function App() {
       createdAt: new Date(),
       updatedAt: new Date()
     });
-  };
-
-  const selectConversation = (conversation: Conversation) => {
+  }, [currentConversation.messages.length, saveCurrentConversation]);
+  const selectConversation = useCallback((conversation: Conversation) => {
     if (currentConversation.messages.length > 0) {
       saveCurrentConversation();
     }
@@ -180,33 +241,59 @@ export default function App() {
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
-  };
+  }, [currentConversation.messages.length, saveCurrentConversation]);
 
-  const deleteConversation = (id: string) => {
-    const remaining = conversations.filter(c => c.id !== id);
-    setConversations(remaining);
-    localStorage.setItem("conversations", JSON.stringify(remaining));
-    if (id === currentConversation.id) {
-      if (remaining.length > 0) {
-        setCurrentConversation(remaining[0]);
-      } else {
-        handleNewChat();
+  const deleteConversation = useCallback((id: string) => {
+    Swal.fire({
+      title: 'Delete Conversation',
+      text: 'Are you sure you want to delete this conversation?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#d33',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const remaining = conversations.filter(c => c.id !== id);
+        setConversations(remaining);
+        
+        if (id === currentConversation.id) {
+          if (remaining.length > 0) {
+            setCurrentConversation(remaining[0]);
+          } else {
+            handleNewChat();
+          }
+        }
+        
+        toast.success("Conversation deleted");
       }
-    }
-    toast.success("Conversation deleted");
-  };
+    });
+  }, [conversations, currentConversation.id, handleNewChat]);
 
-  const formatTime = (date: Date) => {
+  const formatTime = useCallback((date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  }, []);
 
-  const formatDate = (date: Date) => {
+  const formatDate = useCallback((date: Date) => {
     return date.toLocaleDateString([], { 
       year: 'numeric', 
       month: 'short',
       day: 'numeric'
     });
-  };
+  }, []);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && newMessage.trim() && !isAiResponding) {
+        handleSendMessage(e as any);
+      }
+      if (e.key === 'Escape' && window.innerWidth < 768 && isSidebarOpen) {
+        setIsSidebarOpen(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [newMessage, isAiResponding, isSidebarOpen]);
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
@@ -244,6 +331,14 @@ export default function App() {
         <div className="flex flex-col flex-1 bg-black">
           <div className="p-4 border-b border-gray-800 flex items-center justify-between">
             <div className="flex items-center space-x-3">
+              <Link href="/dashboard" passHref>
+                <div className="cursor-pointer hover:opacity-80 transition-opacity">
+                  <House className="h-8 w-8 text-white" />
+                </div>
+              </Link>
+              <h2 className="text-lg font-semibold">Home</h2>
+            </div>
+            <div className="flex items-center space-x-3">
               <Bot className="h-8 w-8 text-white" />
               <h2 className="text-lg font-semibold">{currentConversation.title}</h2>
             </div>
@@ -269,8 +364,11 @@ export default function App() {
             
             {isAiResponding && (
               <div className="flex justify-start">
-                <div className="bg-gray-800 text-white rounded-lg p-3 animate-pulse">
-                  AI is thinking...
+                <div className="bg-gray-800 text-white rounded-lg p-3 animate-pulse flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-100"></div>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-200"></div>
+                  <span className="ml-2">AI is thinking...</span>
                 </div>
               </div>
             )}
@@ -289,24 +387,26 @@ export default function App() {
           >
             <div className="flex items-center space-x-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Type your message..."
+                placeholder="Type your message... (Ctrl+Enter to send)"
                 className="flex-1 p-3 bg-white text-black border border-white hover:bg-black hover:text-white rounded-xl focus:ring-2 focus:ring-white transition-all duration-300"
                 disabled={isAiResponding}
               />
               <button
                 type="submit"
                 className={`
-                  p-3 rounded-xl transition-all duration-300
+                  p-3 rounded-xl transition-all duration-300 flex items-center justify-center
                   ${newMessage.trim() && !isAiResponding 
                     ? 'bg-black hover:bg-white hover:text-black text-white border-2 border-white' 
-                    : 'bg-white text-black border-2 border-white cursor-not-allowed'}
+                    : 'bg-white text-black border-2 border-white cursor-not-allowed opacity-50'}
                 `}
                 disabled={!newMessage.trim() || isAiResponding}
+                aria-label="Send message"
               >
-                Send
+                <Send size={18} />
               </button>
             </div>
           </form>

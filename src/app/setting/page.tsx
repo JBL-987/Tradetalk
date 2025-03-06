@@ -8,7 +8,7 @@ import { updateUserSettings, resetPassword } from "@/services/user";
 import { toast } from "react-hot-toast";
 
 export default function Settings() {
-  const { currentUser, signOut } = useAuth();
+  const { currentUser} = useAuth();
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [resetLoading, setResetLoading] = useState<boolean>(false);
   
@@ -20,7 +20,6 @@ export default function Settings() {
     twoFactorAuth: false
   });
 
-  // Fetch user settings on component mount
   useEffect(() => {
     const fetchSettings = async () => {
       if (!currentUser?.uid) return;
@@ -77,16 +76,6 @@ export default function Settings() {
       toast.error(err.message || "Failed to send password reset email");
     } finally {
       setResetLoading(false);
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast.success("Signed out successfully");
-    } catch (err: any) {
-      console.error("Error signing out:", err);
-      toast.error(err.message || "Failed to sign out");
     }
   };
 
@@ -217,17 +206,6 @@ export default function Settings() {
                   </div>
                 </div>
               </div>
-              
-              <div className="pt-4">
-                <button
-                  onClick={handleSignOut}
-                  className="w-full bg-gradient-to-r from-red-700 to-red-800 hover:from-red-800 hover:to-red-900 text-white rounded-md px-4 py-3 transition duration-300 flex items-center justify-center shadow-md"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </button>
-              </div>
-              
               <p className="text-center text-sm text-gray-500 pt-4">
                 Chatta v1.0.0 • © 2025 Chatta Inc.
               </p>
