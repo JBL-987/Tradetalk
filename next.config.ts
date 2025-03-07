@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
   typescript: {
     ignoreBuildErrors: true,
@@ -8,7 +7,6 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  
   async rewrites() {
     return [
       {
@@ -23,9 +21,9 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         headers: [
           {
-             key: 'Access-Control-Allow-Origin',
-             value: process.env.ALLOWED_ORIGIN || 'https://yourdomain.com'
-           },
+            key: 'Access-Control-Allow-Origin',
+            value: process.env.ALLOWED_ORIGIN || 'https://yourdomain.com'
+          },
           { key: 'Access-Control-Allow-Methods', value: 'GET,POST,PUT,DELETE,OPTIONS' },
           { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
         ],
@@ -34,4 +32,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
