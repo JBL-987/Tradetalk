@@ -1,4 +1,4 @@
-const API_KEY = process.env.OPENROUTER_API_KEY;
+const API_KEY = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 export interface Message {
