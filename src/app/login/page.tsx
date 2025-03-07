@@ -34,15 +34,13 @@ export default function Login() {
          Swal.fire({
             icon: "error",
             title: "Oops...",
-            text: "Invalid email and password try again.",
-            footer: '<a href="#">Why do I have this issue?</a>'
+            text: "Invalid email and password try again."
           });
       } else {
          Swal.fire({
             icon: "error",
             title: "Oops...",
-            text: `${err.message}`,
-            footer: '<a href="#">Why do I have this issue?</a>'
+            text: `${err.message}`
         });
       }
     } finally {
@@ -156,7 +154,7 @@ export default function Login() {
             </button>
           </div>
           
-          <p className="text-white/90">Don't have an account? <a href="/signup" className="text-white hover:underline transition-all duration-300 ease-out">Sign Up now</a></p>
+          <p className="text-white/90">Don&apos;t have an account? <a href="/signup" className="text-white hover:underline transition-all duration-300 ease-out">Sign Up now</a></p>
         </main>
         <footer className="absolute bottom-4 text-white/80 text-sm">
           2025 © TradeTalk. All rights reserved.
