@@ -1,4 +1,4 @@
-const API_KEY = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 export interface Message {
@@ -7,7 +7,7 @@ export interface Message {
 }
 
 export async function getChatCompletion(messages: Message[]) {
-  if (!API_KEY || API_KEY === "your_openrouter_api_key_here") {
+  if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY === "your_openrouter_api_key_here") {
     throw new Error("Please set your OpenRouter API key in the .env file");
   }
   try {
@@ -15,7 +15,7 @@ export async function getChatCompletion(messages: Message[]) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`,
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
         "HTTP-Referer": window.location.origin,
         "X-Title": "AI Chat Assistant"
       },
