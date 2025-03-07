@@ -303,7 +303,7 @@ export default function App() {
               <div className="h-full flex items-center justify-center text-center text-gray-400">
                 <div>
                   <Bot className="h-20 w-20 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-2xl font-light mb-2">Welcome to AI Chat</h3>
+                  <h3 className="text-2xl font-light mb-2">Welcome to TradeTalk's AI Chat</h3>
                   <p>Start a conversation by typing a message below</p>
                 </div>
               </div>

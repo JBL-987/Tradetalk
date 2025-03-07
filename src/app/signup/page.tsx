@@ -179,7 +179,7 @@ export default function Signup() {
           <p className="text-white/90">Already have an account? <a href="/login" className="text-white hover:underline transition-all duration-300 ease-out">Sign In now</a></p>
         </main>
         <footer className="absolute bottom-4 text-white/80 text-sm">
-          2025 © Chatta. All rights reserved.
+          2025 © TradeTalk. All rights reserved.
         </footer>
       </div>
     </div>

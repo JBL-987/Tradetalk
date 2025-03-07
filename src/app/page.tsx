@@ -22,7 +22,7 @@ export default function Home() {
       <div className="relative z-10 flex flex-col items-center justify-center h-screen p-6">
         <main className="w-full max-w-4xl mx-auto flex flex-col items-center text-center gap-6">
           <h1 className="text-4xl md:text-6xl font-bold text-white drop-shadow-md dark:drop-shadow-lg transition-all duration-300">
-            Welcome to Chatta
+            Welcome to TradeTalk
           </h1>
           <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto drop-shadow">
             The best place to chat with friends and family.
@@ -43,7 +43,7 @@ export default function Home() {
           </div>
         </main>
         <footer className="absolute bottom-4 text-white/80 text-sm">
-          2025 © Chatta. All rights reserved.
+          2025 © TradeTalk. All rights reserved.
         </footer>
       </div>
     </div>

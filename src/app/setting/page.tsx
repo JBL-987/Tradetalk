@@ -205,7 +205,7 @@ export default function Settings() {
                 </div>
               </div>
               <p className="text-center text-sm text-gray-500 pt-4">
-                Chatta v1.0.0 • © 2025 Chatta Inc.
+                TradeTalk v1.0.0 • © 2025 TradeTalk Inc.
               </p>
             </div>
           </div>

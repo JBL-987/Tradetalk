@@ -325,7 +325,7 @@ export default function Dashboard() {
             <div className="flex items-center absolute left-4 space-x-4 md:space-x-8">
               <Image
                 src="/logo.png"
-                alt="Chatta Logo"
+                alt="TradeTalk Logo"
                 width={100}
                 height={100}
                 className="h-16 w-auto"
@@ -408,7 +408,7 @@ export default function Dashboard() {
                   aria-label="Chat with AI"
                 >
                   <Bot className="h-4 w-4 mr-2" />
-                  Charge with AI
+                  Chat with AI
                 </button>
                 <button
                   onClick={() => { window.location.href = '/chart'; }}
