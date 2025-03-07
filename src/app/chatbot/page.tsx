@@ -26,7 +26,11 @@ export default function App() {
   });
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isAiResponding, setIsAiResponding] = useState<boolean>(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(window.innerWidth >= 768);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+  setIsSidebarOpen(window.innerWidth >= 768);
+}, []);
 
   useEffect(() => {
     try {
@@ -230,6 +234,7 @@ export default function App() {
   }, []);
 
   const formatDate = useCallback((date: Date) => {
+    if (!(date instanceof Date)) date = new Date(date);
     return date.toLocaleDateString([], { 
       year: 'numeric', 
       month: 'short',
