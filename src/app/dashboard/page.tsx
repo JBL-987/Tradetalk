@@ -53,6 +53,19 @@ export default function Dashboard() {
   const [tabView, setTabView] = useState<'contacts' | 'groups'>('contacts');
 
   useEffect(() => {
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.history.pushState(null, "", window.location.href);
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!currentUser) return;
 
     const loadContactsAndGroups = async () => {
