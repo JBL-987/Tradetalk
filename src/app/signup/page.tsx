@@ -79,8 +79,8 @@ export default function Signup() {
   return (
     <div className="relative h-screen w-screen overflow-hidden font-[family-name:var(--font-geist-sans)]">
        <div className="fixed inset-0 w-full h-full -z-10">
-        <Spline
-          scene="https://prod.spline.design/OImLoQD838hwPx9Z/scene.splinecode" 
+       <Spline
+          scene="https://prod.spline.design/d6SwbZkzSne62CLy/scene.splinecode"  
           className="w-full h-full object-cover min-w-[100%] min-h-[100%]"
           onLoad={() => setIsLoaded(true)}
         />
@@ -139,7 +139,7 @@ export default function Signup() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  minLength="6" 
+                  minLength={6} 
                   required
                   className="rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white gap-2 px-6 py-3 font-medium shadow-lg w-full" 
                 />
