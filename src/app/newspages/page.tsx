@@ -63,15 +63,20 @@ export default function NewsSearch() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      <header className="bg-black border-b border-gray-800">
+        <div className="container mx-auto">
+          <div className="py-4 px-4 sm:px-6 lg:px-8">
+            <Link href="/dashboard" passHref>
+              <div className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer w-fit">
+                <House className="h-5 w-5 text-white" />
+                <span className="text-lg font-medium text-white">Home</span>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </header>
+
       <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-       <div className="flex items-center space-x-3 border-b border-gray-500 w-full">
-          <Link href="/dashboard" passHref>
-            <div className="cursor-pointer hover:opacity-80 transition-opacity">
-          <House className="h-8 w-8 text-white" />
-        </div>
-          </Link>
-        <h2 className="text-lg font-semibold">Home</h2>
-        </div>
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center p-4 rounded-full mb-6">
             <Newspaper className="text-white" size={40} />
@@ -100,31 +105,31 @@ export default function NewsSearch() {
                     setSearchTerm(value);
                   }
                 }}
-                 onBlur={(e) => {
-                 if (e.target.value) {
-                  setSearchTerm(
-                  e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1)
-                );
-               }
-               }}
-              className="rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white gap-2 pl-10 pr-4 py-2 text-sm md:text-base font-medium shadow-lg w-full focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
-              aria-label="Search news articles"
+                onBlur={(e) => {
+                  if (e.target.value) {
+                    setSearchTerm(
+                      e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1)
+                    );
+                  }
+                }}
+                className="rounded-full bg-white text-black border border-transparent transition-all duration-300 ease-out transform hover:scale-105 hover:bg-black hover:text-white hover:border-white gap-2 pl-10 pr-4 py-2 text-sm md:text-base font-medium shadow-lg w-full focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
+                aria-label="Search news articles"
               />
             </div>
             <Button 
-            type="submit" 
-            disabled={loading}
-            className="rounded-full bg-white text-black border border-transparent hover:bg-black hover:text-white hover:border-white text-sm md:text-base font-medium shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
+              type="submit" 
+              disabled={loading}
+              className="rounded-full bg-white text-black border border-transparent hover:bg-black hover:text-white hover:border-white text-sm md:text-base font-medium shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
             >
-           {loading ? (
-           <div className="flex items-center space-x-2">
-           <Loader2 className="h-4 w-4 animate-spin" />
-           <span>Searching</span>
-           </div>
-           ) : (
-            "Search"
-            )}
-           </Button>
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Searching</span>
+                </div>
+              ) : (
+                "Search"
+              )}
+            </Button>
           </form>
 
           {error && (

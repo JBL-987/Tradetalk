@@ -184,9 +184,10 @@ export default function Dashboard() {
               <Image
                 src="/logo.png"
                 alt="TradeTalk Logo"
-                width={100}
-                height={100}
-                className="h-4 md:h-10 w-auto"
+                width={200}
+                height={40}
+                className="h-8 md:h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                priority
               />
             </div>
             <div className="md:hidden">
