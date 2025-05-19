@@ -96,7 +96,7 @@ export default function App() {
     try {
       const apiMessages = updatedMessages.map(msg => ({
         role: msg.role,
-        content: msg.content
+        content: msg.content.replace(/\n/g, ' ')
       }));
 
       const aiResponse = await getChatCompletion(apiMessages);
