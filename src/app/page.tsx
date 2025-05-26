@@ -103,14 +103,16 @@ export default function Home() {
   const SectionCard = ({ id, title, content }) => (
     <section
       id={id}
-      className="section-card min-h-screen flex items-center justify-center bg-black text-white px-4 relative z-20"
+      className="section-card min-h-[60vh] h-auto flex items-center justify-center bg-black text-white px-2 sm:px-4 md:px-8 py-8 relative z-20"
       style={{ visibility: "hidden" }} // Hide initially for animation
     >
-      <Card className="w-full max-w-4xl md:max-w-5xl lg:max-w-6xl h-screen md:h-5/6 shadow-2xl rounded-2xl border-white/10 border backdrop-blur-sm bg-white/5">
-        <CardHeader className="md:p-8">
-           <CardTitle className="text-white text-3xl md:text-4xl lg:text-5xl">{title}</CardTitle>
+      <Card className="w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl h-auto shadow-2xl rounded-2xl border-white/10 border backdrop-blur-sm bg-white/5 flex flex-col">
+        <CardHeader className="p-4 sm:p-6 md:p-8">
+          <CardTitle className="text-white text-2xl sm:text-3xl md:text-4xl lg:text-5xl">{title}</CardTitle>
         </CardHeader>
-        <CardContent className="text-gray-300 md:text-lg overflow-y-auto flex-grow">{content}</CardContent>
+        <CardContent className="text-gray-300 text-base sm:text-lg overflow-x-auto flex-grow px-2 sm:px-4 md:px-8 py-2 sm:py-4">
+          {content}
+        </CardContent>
       </Card>
     </section>
   );
