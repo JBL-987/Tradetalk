@@ -13,6 +13,7 @@ export default function Home() {
   const containerRef = useRef(null);
   const headerRef = useRef(null);
   const headerContentRef = useRef(null);
+  const footerRef = useRef(null); // Tambahkan ini
   
   // Mengoptimalkan useLayoutEffect dengan cleanup yang lebih baik
   useLayoutEffect(() => {
@@ -128,7 +129,7 @@ export default function Home() {
   };
 
   return (
-    <div ref={containerRef} className="relative h-screen bg-black w-screen font-[family-name:var(--font-geist-sans)]">
+    <div ref={containerRef} className="relative min-h-screen bg-black w-screen font-[family-name:var(--font-geist-sans)] flex flex-col">
       <div ref={splineRef} className="fixed inset-0 w-full h-full z-10">
         <Spline
           scene="https://prod.spline.design/wzxrk97vdNZbGrCk/scene.splinecode"  
@@ -170,7 +171,7 @@ export default function Home() {
         </main>
       </div>
       
-      <div className="relative z-20">
+      <div className="relative z-20 flex-1 flex flex-col">
         <SectionCard
           id="about-us"
           title="About Us"
@@ -277,7 +278,11 @@ export default function Home() {
         /> 
       </div>
       
-      <footer className="absolute bottom-4 w-full text-center text-white/80 text-sm">
+      {/* Footer di bawah section card, pakai ref */}
+      <footer
+        ref={footerRef}
+        className="w-full py-6 text-center text-white/80 text-sm bg-black mt-8"
+      >
         2025 © TradeTalk. All rights reserved.
       </footer>
     </div>
